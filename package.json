@@ -1,0 +1,27 @@
+{
+  "name": "kori",
+  "version": "1.0.0",
+  "description": "Sistema de Gerencia y Planificación para Comercial Camadu C.A.",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node --watch backend/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "erp",
+    "inventario",
+    "camadu",
+    "postgresql",
+    "express"
+  ],
+  "author": "Herlin Korina Aquino",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0",
+    "pg": "^8.23.1"
+  }
+}

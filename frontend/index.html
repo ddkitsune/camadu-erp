@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Gerencia y Planificación | Heladería Camadu C.A.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- SIDEBAR DE NAVEGACIÓN ESTILO SOFI / HELADERÍA CAMADU -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="img/logo.png" alt="Heladería Camadu" class="brand-logo-img">
+        <div class="brand-info">
+          <h1>HELADERÍA CAMADU</h1>
+          <span>¡Un helado, una sonrisa!</span>
+        </div>
+      </div>
+      <div class="brand-stripe"></div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Principal</div>
+        <a class="nav-item active" data-view="dashboard">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard General</span>
+        </a>
+
+        <div class="nav-section-title">Operaciones & Almacén</div>
+        <a class="nav-item" data-view="inventario">
+          <span class="nav-icon">📦</span>
+          <span>M1: Control de Inventario</span>
+        </a>
+        <a class="nav-item" data-view="movimientos">
+          <span class="nav-icon">🔄</span>
+          <span>M2: Entradas y Salidas</span>
+        </a>
+
+        <div class="nav-section-title">Finanzas & Compras</div>
+        <a class="nav-item" data-view="cxp">
+          <span class="nav-icon">💳</span>
+          <span>M3: Cuentas por Pagar</span>
+        </a>
+        <a class="nav-item" data-view="proveedores">
+          <span class="nav-icon">🏢</span>
+          <span>M5: Directorio Proveedores</span>
+        </a>
+
+        <div class="nav-section-title">Inteligencia & Análisis</div>
+        <a class="nav-item" data-view="reportes">
+          <span class="nav-icon">📈</span>
+          <span>M4: Más Vendidos del Mes</span>
+        </a>
+
+        <div class="nav-section-title">Seguridad & Ajustes</div>
+        <a class="nav-item" data-view="usuarios">
+          <span class="nav-icon">👥</span>
+          <span>M6: Gestión de Usuarios</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-avatar" style="background: var(--primary);">HA</div>
+        <div class="user-details">
+          <h4>Herlin Aquino</h4>
+          <p>Administrador / Camadu</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ÁREA DE CONTENIDO PRINCIPAL -->
+    <main class="main-content">
+      <!-- NAVBAR SUPERIOR -->
+      <header class="top-navbar">
+        <div class="navbar-title">
+          <h2 id="page-title">Dashboard General</h2>
+          <p id="page-subtitle">Visión 360° del flujo operativo y control de stock</p>
+        </div>
+        <div class="navbar-actions">
+          <!-- Tasa del Día Dinámica -->
+          <div class="currency-badge tasa-badge" onclick="app.abrirModalTasa()" title="Clic para actualizar la tasa oficial del día en la base de datos">
+            <span id="nav-tasa-dolar">💵 Tasa BCV: 1 USD = Bs. 48.50</span>
+            <button class="btn-mini-tasa" type="button">✏️ Actualizar</button>
+          </div>
+          <div class="currency-badge">
+            <span>🍦 USD ($) / Bs (VES)</span>
+          </div>
+          <div class="time-display" id="clock-display">--:--:--</div>
+        </div>
+      </header>
+
+      <!-- VISTAS DINÁMICAS (SPA) -->
+      <div class="page-container">
+        
+        <!-- VISTA 1: DASHBOARD GENERAL -->
+        <section id="view-dashboard" class="view-section">
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-info">
+                <span>Total Productos</span>
+                <h3 id="kpi-total-productos">0</h3>
+              </div>
+              <div class="kpi-icon blue">📦</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-info">
+                <span>Alertas Stock Crítico</span>
+                <h3 id="kpi-stock-critico" style="color: var(--danger);">0</h3>
+              </div>
+              <div class="kpi-icon red">⚠️</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-info">
+                <span>Deuda Total CxP</span>
+                <h3 id="kpi-deuda-cxp">$0.00</h3>
+                <small id="kpi-cxp-alerta" style="font-size: 11px; color: var(--danger); font-weight: 500;"></small>
+              </div>
+              <div class="kpi-icon yellow">💳</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-info">
+                <span>Salidas del Mes</span>
+                <h3 id="kpi-salidas-mes">0 und</h3>
+              </div>
+              <div class="kpi-icon green">🚀</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3>Artículos con Alerta de Reabastecimiento Inmediato</h3>
+                <p>Piezas cuyo stock actual es menor o igual al umbral mínimo establecido</p>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="app.navigateTo('inventario')">Ver todo el inventario</button>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="data-table" id="tabla-dashboard-alertas">
+                  <thead>
+                    <tr>
+                      <th>Código</th>
+                      <th>Producto</th>
+                      <th>Material</th>
+                      <th>Stock Actual</th>
+                      <th>Stock Mínimo</th>
+                      <th>Estado</th>
+                      <th>Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VISTA 2: MÓDULO 1 - INVENTARIO & STOCK -->
+        <section id="view-inventario" class="view-section" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3>Control de Inventario y Stock de Piezas</h3>
+                <p>Catálogo centralizado de piezas pequeñas y manicería con control de umbrales</p>
+              </div>
+              <div style="display: flex; gap: 12px; align-items: center;">
+                <div class="search-box">
+                  <input type="text" id="buscar-producto" placeholder="Buscar por código, nombre o material..." oninput="app.buscarProductos(this.value)">
+                </div>
+                <button class="btn btn-primary" onclick="app.abrirModalNuevoProducto()">+ Nuevo Producto</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="data-table" id="tabla-productos">
+                  <thead>
+                    <tr>
+                      <th>Código</th>
+                      <th>Nombre del Producto</th>
+                      <th>Material</th>
+                      <th>Precio Costo</th>
+                      <th>Precio Venta</th>
+                      <th>Stock Actual</th>
+                      <th>Stock Mínimo</th>
+                      <th>Estado de Stock</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VISTA 3: MÓDULO 2 - ENTRADAS Y SALIDAS -->
+        <section id="view-movimientos" class="view-section" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3>Control de Entradas y Salidas de Mercancía</h3>
+                <p>Trazabilidad física de piezas ingresadas por compras o despachadas por ventas y mermas</p>
+              </div>
+              <button class="btn btn-primary" onclick="app.abrirModalNuevoMovimiento()">+ Registrar Movimiento</button>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="data-table" id="tabla-movimientos">
+                  <thead>
+                    <tr>
+                      <th>Fecha / Hora</th>
+                      <th>Tipo</th>
+                      <th>Motivo</th>
+                      <th>Producto</th>
+                      <th>Cantidad</th>
+                      <th>N° Documento</th>
+                      <th>Responsable</th>
+                      <th>Nota</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VISTA 4: MÓDULO 3 - CUENTAS POR PAGAR -->
+        <section id="view-cxp" class="view-section" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3>Cuentas por Pagar a Proveedores</h3>
+                <p>Control de compromisos financieros por compras de mercancía y fechas de vencimiento</p>
+              </div>
+              <button class="btn btn-primary" onclick="app.abrirModalNuevaCxP()">+ Nueva Factura por Pagar</button>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="data-table" id="tabla-cxp">
+                  <thead>
+                    <tr>
+                      <th>Proveedor</th>
+                      <th>N° Factura</th>
+                      <th>Monto Total</th>
+                      <th>Abonado</th>
+                      <th>Saldo Pendiente</th>
+                      <th>Vencimiento</th>
+                      <th>Estatus</th>
+                      <th>Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VISTA 5: MÓDULO 4 - PRODUCTOS MÁS VENDIDOS -->
+        <section id="view-reportes" class="view-section" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3>Productos Más Vendidos del Mes en Curso</h3>
+                <p>Reporte de rotación para identificar piezas de alta demanda y optimizar compras</p>
+              </div>
+              <span class="badge badge-info" id="badge-periodo-reporte">Mes en Curso</span>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="data-table" id="tabla-mas-vendidos">
+                  <thead>
+                    <tr>
+                      <th># Ranking</th>
+                      <th>Código</th>
+                      <th>Producto</th>
+                      <th>Material</th>
+                      <th>Total Salidas (Ventas)</th>
+                      <th>Participación</th>
+                      <th>Ingreso Generado</th>
+                      <th>Nivel de Rotación</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VISTA 6: MÓDULO 5 - PROVEEDORES -->
+        <section id="view-proveedores" class="view-section" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3>Directorio de Fabricantes y Proveedores</h3>
+                <p>Registro centralizado de contactos, condiciones de crédito y estado financiero</p>
+              </div>
+              <button class="btn btn-primary" onclick="app.abrirModalNuevoProveedor()">+ Nuevo Proveedor</button>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="data-table" id="tabla-proveedores">
+                  <thead>
+                    <tr>
+                      <th>Empresa / Proveedor</th>
+                      <th>Persona Contacto</th>
+                      <th>Teléfono</th>
+                      <th>Correo Electrónico</th>
+                      <th>Días Crédito</th>
+                      <th>Condiciones de Pago</th>
+                      <th>Deuda Activa</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VISTA 7: MÓDULO 6 - ADMINISTRACIÓN DE USUARIOS -->
+        <section id="view-usuarios" class="view-section" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3>Gestión de Usuarios del Sistema</h3>
+                <p>Control de accesos, roles administrativos y credenciales almacenadas en PostgreSQL 18</p>
+              </div>
+              <button class="btn btn-primary" onclick="app.abrirModalNuevoUsuario()">+ Nuevo Usuario</button>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="data-table" id="tabla-usuarios">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Nombre Completo</th>
+                      <th>Usuario (Login)</th>
+                      <th>Rol en el Sistema</th>
+                      <th>Correo Electrónico</th>
+                      <th>Teléfono</th>
+                      <th>Estado</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL: PRODUCTO -->
+  <div class="modal-overlay" id="modal-producto">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-producto-titulo">Registrar Nuevo Producto</h3>
+        <button class="btn-close" onclick="app.cerrarModal('modal-producto')">&times;</button>
+      </div>
+      <form id="form-producto" onsubmit="app.guardarProducto(event)">
+        <input type="hidden" id="prod-id">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Código / SKU *</label>
+              <input type="text" id="prod-codigo" class="form-control" placeholder="Ej: MC-007" required>
+            </div>
+            <div class="form-group">
+              <label>Material *</label>
+              <input type="text" id="prod-material" class="form-control" placeholder="Ej: Acero, Latón, Bronce" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Nombre del Producto / Pieza *</label>
+            <input type="text" id="prod-nombre" class="form-control" placeholder="Ej: Hebilla para Correa 30mm" required>
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea id="prod-descripcion" class="form-control" rows="2" placeholder="Detalles de acabado, especificación técnica..."></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Stock Actual (unidades) *</label>
+              <input type="number" id="prod-stock-actual" class="form-control" min="0" value="0" required>
+            </div>
+            <div class="form-group">
+              <label>Stock Mínimo (alerta) *</label>
+              <input type="number" id="prod-stock-minimo" class="form-control" min="1" value="10" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Precio Costo ($)</label>
+              <input type="number" step="0.01" id="prod-precio-costo" class="form-control" value="0.00" required>
+            </div>
+            <div class="form-group">
+              <label>Precio Venta ($)</label>
+              <input type="number" step="0.01" id="prod-precio-venta" class="form-control" value="0.00" required>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.cerrarModal('modal-producto')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Producto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: MOVIMIENTO (ENTRADA / SALIDA) -->
+  <div class="modal-overlay" id="modal-movimiento">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Registrar Entrada o Salida de Mercancía</h3>
+        <button class="btn-close" onclick="app.cerrarModal('modal-movimiento')">&times;</button>
+      </div>
+      <form id="form-movimiento" onsubmit="app.guardarMovimiento(event)">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tipo de Movimiento *</label>
+              <select id="mov-tipo" class="form-control" required onchange="app.ajustarMotivos(this.value)">
+                <option value="ENTRADA">📥 ENTRADA (Suma Stock)</option>
+                <option value="SALIDA">📤 SALIDA (Resta Stock)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Motivo *</label>
+              <select id="mov-motivo" class="form-control" required>
+                <option value="COMPRA">Compra a Proveedor</option>
+                <option value="AJUSTE">Ajuste de Inventario</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Seleccionar Producto / Pieza *</label>
+            <select id="mov-producto-id" class="form-control" required></select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Cantidad *</label>
+              <input type="number" id="mov-cantidad" class="form-control" min="1" required>
+            </div>
+            <div class="form-group">
+              <label>N° Documento (Factura/Remisión) *</label>
+              <input type="text" id="mov-documento" class="form-control" placeholder="Ej: FAC-2026-99" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Responsable del Movimiento *</label>
+            <input type="text" id="mov-responsable" class="form-control" value="Herlin Aquino" required>
+          </div>
+          <div class="form-group">
+            <label>Observaciones / Nota</label>
+            <input type="text" id="mov-nota" class="form-control" placeholder="Detalles adicionales">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.cerrarModal('modal-movimiento')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Registrar Movimiento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CUENTAS POR PAGAR -->
+  <div class="modal-overlay" id="modal-cxp">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Registrar Factura por Pagar a Proveedor</h3>
+        <button class="btn-close" onclick="app.cerrarModal('modal-cxp')">&times;</button>
+      </div>
+      <form id="form-cxp" onsubmit="app.guardarCxP(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Proveedor *</label>
+            <select id="cxp-proveedor-id" class="form-control" required></select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>N° Factura *</label>
+              <input type="text" id="cxp-factura" class="form-control" placeholder="Ej: FAC-00891" required>
+            </div>
+            <div class="form-group">
+              <label>Monto Total ($) *</label>
+              <input type="number" step="0.01" id="cxp-monto" class="form-control" placeholder="0.00" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Fecha de Emisión *</label>
+              <input type="date" id="cxp-emision" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label>Fecha de Vencimiento *</label>
+              <input type="date" id="cxp-vencimiento" class="form-control" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Notas / Condiciones</label>
+            <input type="text" id="cxp-notas" class="form-control" placeholder="Condición de entrega, orden de compra...">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.cerrarModal('modal-cxp')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Registrar Cuenta</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ABONAR A CUENTA POR PAGAR -->
+  <div class="modal-overlay" id="modal-abono">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Registrar Pago / Abono a Proveedor</h3>
+        <button class="btn-close" onclick="app.cerrarModal('modal-abono')">&times;</button>
+      </div>
+      <form id="form-abono" onsubmit="app.guardarAbono(event)">
+        <input type="hidden" id="abono-cuenta-id">
+        <div class="modal-body">
+          <p id="abono-info-texto" style="font-size: 14px; margin-bottom: 16px; color: var(--text-muted);"></p>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Monto a Pagar ($) *</label>
+              <input type="number" step="0.01" id="abono-monto" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label>Método de Pago *</label>
+              <select id="abono-metodo" class="form-control" required>
+                <option value="TRANSFERENCIA">Transferencia Bancaria</option>
+                <option value="PAGO_MOVIL">Pago Móvil</option>
+                <option value="EFECTIVO_USD">Efectivo Divisas ($)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Referencia Bancaria / Recibo</label>
+            <input type="text" id="abono-ref" class="form-control" placeholder="N° de comprobante o referencia">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.cerrarModal('modal-abono')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Confirmar Pago</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PROVEEDOR -->
+  <div class="modal-overlay" id="modal-proveedor">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-prov-titulo">Registrar Proveedor</h3>
+        <button class="btn-close" onclick="app.cerrarModal('modal-proveedor')">&times;</button>
+      </div>
+      <form id="form-proveedor" onsubmit="app.guardarProveedor(event)">
+        <input type="hidden" id="prov-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Nombre de la Empresa / Distribuidora *</label>
+            <input type="text" id="prov-empresa" class="form-control" placeholder="Ej: Aceros y Herrajes Industriales C.A." required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Persona de Contacto</label>
+              <input type="text" id="prov-contacto" class="form-control" placeholder="Ej: Ing. Pedro Pérez">
+            </div>
+            <div class="form-group">
+              <label>Teléfono</label>
+              <input type="text" id="prov-telefono" class="form-control" placeholder="+58 412-1234567">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Correo Electrónico</label>
+            <input type="email" id="prov-email" class="form-control" placeholder="ventas@proveedor.com">
+          </div>
+          <div class="form-group">
+            <label>Dirección</label>
+            <input type="text" id="prov-direccion" class="form-control" placeholder="Dirección fiscal o almacén...">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Días de Crédito</label>
+              <input type="number" id="prov-dias-credito" class="form-control" value="0" min="0">
+            </div>
+            <div class="form-group">
+              <label>Condiciones de Pago Habituales</label>
+              <input type="text" id="prov-condiciones" class="form-control" placeholder="Ej: Contado, 15 días, 30 días">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.cerrarModal('modal-proveedor')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Proveedor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: GESTIÓN DE USUARIO -->
+  <div class="modal-overlay" id="modal-usuario">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-usuario-titulo">Registrar Nuevo Usuario</h3>
+        <button class="btn-close" onclick="app.cerrarModal('modal-usuario')">&times;</button>
+      </div>
+      <form id="form-usuario" onsubmit="app.guardarUsuario(event)">
+        <input type="hidden" id="user-id">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nombre Completo *</label>
+              <input type="text" id="user-nombre" class="form-control" placeholder="Ej: Herlin Aquino" required>
+            </div>
+            <div class="form-group">
+              <label>Nombre de Usuario (Login) *</label>
+              <input type="text" id="user-username" class="form-control" placeholder="Ej: herlin" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Contraseña *</label>
+              <input type="password" id="user-password" class="form-control" placeholder="Mínimo 4 caracteres">
+              <small id="user-password-hint" style="font-size: 11px; color: var(--text-muted); display: none;">Dejar en blanco para conservar la contraseña actual</small>
+            </div>
+            <div class="form-group">
+              <label>Rol / Nivel de Acceso *</label>
+              <select id="user-rol" class="form-control" required>
+                <option value="ADMINISTRADOR">👑 Administrador (Acceso Total)</option>
+                <option value="SUPERVISOR">⚡ Supervisor (Almacén y Finanzas)</option>
+                <option value="OPERADOR">👤 Operador / Caja (Entradas y Salidas)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Correo Electrónico</label>
+              <input type="email" id="user-email" class="form-control" placeholder="usuario@camadu.com">
+            </div>
+            <div class="form-group">
+              <label>Teléfono de Contacto</label>
+              <input type="text" id="user-telefono" class="form-control" placeholder="+58 412-0000000">
+            </div>
+          </div>
+          <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="user-activo" checked style="width: 18px; height: 18px; accent-color: var(--primary);">
+              <span>Usuario activo en el sistema</span>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.cerrarModal('modal-usuario')">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-guardar-usuario">Guardar Usuario</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ACTUALIZAR TASA DEL DÍA (BCV) -->
+  <div class="modal-overlay" id="modal-tasa">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3>Actualizar Tasa Oficial del Día (BCV)</h3>
+        <button class="btn-close" onclick="app.cerrarModal('modal-tasa')">&times;</button>
+      </div>
+      <form id="form-tasa" onsubmit="app.guardarTasa(event)">
+        <div class="modal-body">
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+            Ingresa la tasa oficial del Banco Central de Venezuela (BCV) para calcular los montos equivalentes en Bolívares (VES) en todo el sistema.
+          </p>
+          <div class="form-group">
+            <label>Tasa de Cambio (Bs. por 1 USD) *</label>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 16px; font-weight: 700; color: var(--text-main);">Bs.</span>
+              <input type="number" step="0.01" min="0.01" id="tasa-valor-input" class="form-control" style="font-size: 18px; font-weight: 700;" required>
+            </div>
+          </div>
+          <div style="background: var(--primary-light); padding: 12px; border-radius: var(--radius-md); font-size: 12px; color: var(--primary-dark);">
+            💡 El cambio se guardará en PostgreSQL y se actualizará automáticamente en los catálogos y reportes.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="app.cerrarModal('modal-tasa')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Nueva Tasa</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
