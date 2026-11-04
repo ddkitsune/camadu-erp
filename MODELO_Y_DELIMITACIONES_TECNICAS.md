@@ -186,3 +186,4 @@ erDiagram
 * **Cliente / Estación Operador:**
   * Cualquier navegador web moderno con soporte ECMAScript 6+ (Google Chrome, Microsoft Edge, Mozilla Firefox).
   * Resolución de pantalla recomendada: 1280x720 o superior.
+

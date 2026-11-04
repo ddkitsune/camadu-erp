@@ -305,3 +305,4 @@ plt.savefig("diagrama_entidad_relacion.png", dpi=300, bbox_inches='tight')
 plt.savefig("diagrama_entidad_relacion.svg", bbox_inches='tight')
 
 print(f"Generated successfully:\n - {png_path}\n - {svg_path}\n - diagrama_entidad_relacion.png")
+

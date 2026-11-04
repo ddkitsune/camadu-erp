@@ -77,3 +77,4 @@
 ## 📖 Documentación Detallada
 Para consultar el **Diagrama Entidad-Relación (DER)**, el Diccionario de Datos y las **Delimitaciones Técnicas completas para la Tesis**, consulta el archivo:
 📄 [`MODELO_Y_DELIMITACIONES_TECNICAS.md`](./MODELO_Y_DELIMITACIONES_TECNICAS.md)
+
