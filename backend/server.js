@@ -534,6 +534,57 @@ app.post('/api/configuracion/tasa', async (req, res) => {
 });
 
 // ==========================================
+// 🔐 AUTENTICACIÓN Y CONTROL DE ACCESO (LOGIN)
+// ==========================================
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ success: false, message: 'Debe ingresar su usuario y contraseña.' });
+    }
+
+    const { rows } = await db.query(`
+      SELECT id, nombre_completo, username, password, rol, email, telefono, activo 
+      FROM usuarios 
+      WHERE LOWER(username) = LOWER($1)
+    `, [username.trim()]);
+
+    if (rows.length === 0) {
+      return res.status(401).json({ success: false, message: 'Usuario no encontrado en la base de datos.' });
+    }
+
+    const user = rows[0];
+
+    if (!user.activo) {
+      return res.status(403).json({ success: false, message: 'Este usuario se encuentra inactivo. Comuníquese con el administrador.' });
+    }
+
+    if (user.password !== password) {
+      return res.status(401).json({ success: false, message: 'Contraseña incorrecta. Verifique sus credenciales.' });
+    }
+
+    res.json({
+      success: true,
+      message: `¡Bienvenido al sistema, ${user.nombre_completo}!`,
+      user: {
+        id: user.id,
+        nombre_completo: user.nombre_completo,
+        username: user.username,
+        rol: user.rol,
+        email: user.email,
+        telefono: user.telefono
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  res.json({ success: true, message: 'Sesión finalizada con éxito.' });
+});
+
+// ==========================================
 // 👥 MÓDULO 6: ADMINISTRACIÓN DE USUARIOS
 // ==========================================
 app.get('/api/usuarios', async (req, res) => {
@@ -647,6 +698,8 @@ app.delete('/api/usuarios/:id', verificarSoloAdmin, async (req, res) => {
 });
 
 // Arrancar servidor
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
 });
+
+module.exports = app;

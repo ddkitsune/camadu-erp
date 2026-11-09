@@ -5,37 +5,151 @@ const app = {
   usuariosCache: [],
   tasaDolar: 48.50,
 
-  // Usuario en sesión activa (Simulación de Roles RBAC)
-  currentUser: {
-    id: 1,
-    nombre_completo: 'Herlin Aquino',
-    username: 'herlin',
-    rol: 'ADMINISTRADOR'
-  },
+  // Usuario en sesión activa
+  currentUser: null,
 
   init() {
-    this.initCurrentUser();
     this.setupNavigation();
     this.startClock();
-    this.loadTasa();
-    this.loadDashboard();
-    this.loadProductosSelect();
-    if (this.currentUser.rol !== 'VENDEDOR' && this.currentUser.rol !== 'CAJERO') {
-      this.loadProveedoresSelect();
+    this.initCurrentUser();
+
+    if (this.currentUser) {
+      this.mostrarApp();
+    } else {
+      this.mostrarLogin();
     }
-    this.aplicarPermisosRol();
   },
 
   // Inicializar o restaurar usuario activo desde LocalStorage
   initCurrentUser() {
     try {
-      const saved = localStorage.getItem('camadu_active_user');
+      const saved = localStorage.getItem('camadu_session');
       if (saved) {
         this.currentUser = JSON.parse(saved);
+      } else {
+        this.currentUser = null;
       }
     } catch (e) {
-      console.warn('No se pudo restaurar usuario activo:', e);
+      console.warn('No se pudo restaurar sesión:', e);
+      this.currentUser = null;
     }
+  },
+
+  // Mostrar interfaz completa del ERP al estar autenticado
+  mostrarApp() {
+    const loginView = document.getElementById('view-login');
+    const appContainer = document.getElementById('app-container');
+    if (loginView) loginView.style.display = 'none';
+    if (appContainer) appContainer.style.display = 'flex';
+
+    this.loadTasa();
+    this.loadDashboard();
+    this.loadProductosSelect();
+    if (this.currentUser && this.currentUser.rol !== 'VENDEDOR' && this.currentUser.rol !== 'CAJERO') {
+      this.loadProveedoresSelect();
+    }
+    this.aplicarPermisosRol();
+    this.navigateTo(this.activeView || 'dashboard');
+  },
+
+  // Mostrar pantalla de login al cerrar sesión o no tener credenciales
+  mostrarLogin() {
+    const loginView = document.getElementById('view-login');
+    const appContainer = document.getElementById('app-container');
+    if (appContainer) appContainer.style.display = 'none';
+    if (loginView) loginView.style.display = 'flex';
+
+    const err = document.getElementById('login-error-msg');
+    if (err) err.style.display = 'none';
+
+    const usernameInput = document.getElementById('login-username');
+    if (usernameInput) usernameInput.focus();
+  },
+
+  // Manejo del formulario de Login con PostgreSQL
+  async iniciarSesion(e) {
+    e.preventDefault();
+    const usernameInput = document.getElementById('login-username');
+    const passwordInput = document.getElementById('login-password');
+    const errorEl = document.getElementById('login-error-msg');
+    const submitBtn = document.getElementById('btn-login-submit');
+
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!username || !password) {
+      if (errorEl) {
+        errorEl.textContent = 'Por favor complete su usuario y contraseña.';
+        errorEl.style.display = 'block';
+      }
+      return;
+    }
+
+    try {
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Verificando credenciales...</span>';
+      }
+      if (errorEl) errorEl.style.display = 'none';
+
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+
+      if (data.success && data.user) {
+        this.currentUser = data.user;
+        localStorage.setItem('camadu_session', JSON.stringify(data.user));
+        this.mostrarApp();
+      } else {
+        if (errorEl) {
+          errorEl.textContent = data.message || 'Error al iniciar sesión.';
+          errorEl.style.display = 'block';
+        }
+      }
+    } catch (err) {
+      if (errorEl) {
+        errorEl.textContent = 'Error de conexión con el servidor. Verifique que la aplicación y PostgreSQL estén activos.';
+        errorEl.style.display = 'block';
+      }
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>Ingresar al Sistema</span> <span style="font-size: 18px;">→</span>';
+      }
+    }
+  },
+
+  // Cerrar sesión y regresar al login
+  cerrarSesion() {
+    if (!confirm('¿Confirma que desea cerrar su sesión en el sistema?')) return;
+    this.currentUser = null;
+    localStorage.removeItem('camadu_session');
+    localStorage.removeItem('camadu_active_user');
+
+    const pInput = document.getElementById('login-password');
+    if (pInput) pInput.value = '';
+
+    this.mostrarLogin();
+  },
+
+  // Rellenar credenciales para demostración rápida ante tutores
+  autofillLogin(username, password) {
+    const uInput = document.getElementById('login-username');
+    const pInput = document.getElementById('login-password');
+    if (uInput) uInput.value = username;
+    if (pInput) pInput.value = password;
+    const err = document.getElementById('login-error-msg');
+    if (err) err.style.display = 'none';
+  },
+
+  // Mostrar / ocultar texto de contraseña en login
+  toggleLoginPwd() {
+    const pInput = document.getElementById('login-password');
+    if (!pInput) return;
+    pInput.type = pInput.type === 'password' ? 'text' : 'password';
   },
 
   // Helper para iniciales de avatar
@@ -203,6 +317,7 @@ const app = {
   cambiarUsuarioActivo(user) {
     this.currentUser = user;
     try {
+      localStorage.setItem('camadu_session', JSON.stringify(user));
       localStorage.setItem('camadu_active_user', JSON.stringify(user));
     } catch (e) {}
 

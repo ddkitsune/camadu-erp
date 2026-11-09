@@ -10,7 +10,66 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div class="app-container">
+  <!-- PANTALLA COMPLETA DE INICIO DE SESIÓN (LOGIN) -->
+  <div id="view-login" class="login-wrapper">
+    <div class="login-card">
+      <div class="login-header">
+        <img src="img/logo.png" alt="Comercial Camadu C.A." class="login-logo">
+        <h2>COMERCIAL CAMADU C.A.</h2>
+        <p class="login-subtitle">Sistema de Gerencia y Planificación ERP</p>
+        <span class="login-badge">Acceso Seguro · PostgreSQL 18</span>
+      </div>
+
+      <form id="form-login" onsubmit="app.iniciarSesion(event)">
+        <div id="login-error-msg" class="login-alert" style="display: none;"></div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label for="login-username" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-main);">Usuario del Sistema</label>
+          <div class="input-icon-group">
+            <span class="input-icon">👤</span>
+            <input type="text" id="login-username" class="form-control" placeholder="Ej: herlin, vendedor1, cajero1" required autofocus autocomplete="username">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 18px;">
+          <label for="login-password" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-main);">Contraseña</label>
+          <div class="input-icon-group">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="login-password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+            <button type="button" class="btn-toggle-pwd" onclick="app.toggleLoginPwd()" title="Mostrar/ocultar contraseña">👁️</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-login" id="btn-login-submit">
+          <span>Ingresar al Sistema</span>
+          <span style="font-size: 18px;">→</span>
+        </button>
+
+        <!-- Accesos rápidos para la defensa / demostración -->
+        <div class="login-quick-demo">
+          <p class="quick-demo-title">Acceso rápido para evaluación académica:</p>
+          <div class="quick-demo-buttons">
+            <button type="button" class="btn-demo-pill demo-admin" onclick="app.autofillLogin('herlin', 'admin123')">
+              👑 Admin (Herlin)
+            </button>
+            <button type="button" class="btn-demo-pill demo-vendedor" onclick="app.autofillLogin('vendedor1', '1234')">
+              🏷️ Vendedor (Carlos)
+            </button>
+            <button type="button" class="btn-demo-pill demo-cajero" onclick="app.autofillLogin('cajero1', '1234')">
+              💵 Cajero (Mariana)
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <div class="login-footer">
+        <p>Trabajo Especial de Grado · <strong>Universidad Alejandro de Humboldt (UAH)</strong></p>
+        <small>Autora: Herlin Aquino · Tutora: MSc. Ofelia Sánchez</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-container" id="app-container" style="display: none;">
     <!-- BARRA LATERAL (SIDEBAR) / COMERCIAL CAMADU C.A. -->
     <aside class="sidebar">
       <div class="sidebar-header">
@@ -62,13 +121,13 @@
         </a>
       </nav>
 
-      <div class="sidebar-footer" onclick="app.abrirModalCambiarUsuario()" style="cursor: pointer;" title="Clic para simular sesión con otro rol (Vendedor, Cajero, Admin...)">
+      <div class="sidebar-footer">
         <div class="user-avatar" id="sidebar-user-avatar">HA</div>
-        <div class="user-details" style="flex: 1; min-width: 0;">
+        <div class="user-details" style="flex: 1; min-width: 0; cursor: pointer;" onclick="app.abrirModalCambiarUsuario()" title="Clic para simular sesión con otro rol">
           <h4 id="sidebar-user-name" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Herlin Aquino</h4>
           <p id="sidebar-user-role" style="font-size: 11px;">👑 Administrador</p>
         </div>
-        <span style="font-size: 13px; opacity: 0.8; margin-left: auto;" title="Cambiar usuario">🔄</span>
+        <button type="button" class="btn-logout" onclick="app.cerrarSesion()" title="Cerrar Sesión (Salir)" style="background: rgba(255,255,255,0.18); border: none; color: #fff; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;" onmouseover="this.style.background='rgba(225,29,72,0.85)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">🚪</button>
       </div>
     </aside>
 
@@ -94,6 +153,10 @@
           <div class="currency-badge">
             <span>💼 USD ($) / Bs (VES)</span>
           </div>
+          <!-- Botón Cerrar Sesión en Navbar -->
+          <button type="button" class="btn-mini-logout" onclick="app.cerrarSesion()" title="Cerrar sesión actual">
+            🚪 Salir
+          </button>
           <div class="time-display" id="clock-display">--:--:--</div>
         </div>
       </header>
