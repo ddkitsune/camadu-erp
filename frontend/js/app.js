@@ -189,10 +189,18 @@ const app = {
       this.productosCache = json.data || [];
 
       const tbody = document.querySelector('#tabla-productos tbody');
+      if (!tbody) return;
       tbody.innerHTML = '';
+
+      if (this.productosCache.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 24px;">No hay productos registrados. Pulsa "+ Nuevo Producto" para comenzar.</td></tr>';
+        return;
+      }
 
       this.productosCache.forEach(p => {
         const esCritico = p.stock_actual <= p.stock_minimo;
+        const costo = parseFloat(p.precio_costo) || 0;
+        const venta = parseFloat(p.precio_venta) || 0;
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><strong>${p.codigo}</strong></td>
@@ -202,12 +210,12 @@ const app = {
           </td>
           <td>${p.material}</td>
           <td>
-            <div>$${p.precio_costo.toFixed(2)}</div>
-            <div style="font-size: 11px; color: var(--text-muted);">Bs. ${(p.precio_costo * this.tasaDolar).toFixed(2)}</div>
+            <div>$${costo.toFixed(2)}</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Bs. ${(costo * this.tasaDolar).toFixed(2)}</div>
           </td>
           <td>
-            <strong>$${p.precio_venta.toFixed(2)}</strong>
-            <div style="font-size: 11px; color: var(--primary); font-weight: 700;">Bs. ${(p.precio_venta * this.tasaDolar).toFixed(2)}</div>
+            <strong>$${venta.toFixed(2)}</strong>
+            <div style="font-size: 11px; color: var(--primary); font-weight: 700;">Bs. ${(venta * this.tasaDolar).toFixed(2)}</div>
           </td>
           <td><strong style="color: ${esCritico ? 'var(--danger)' : 'var(--text-main)'}; font-size: 15px;">${p.stock_actual}</strong></td>
           <td>${p.stock_minimo}</td>
@@ -439,8 +447,15 @@ const app = {
       const tbody = document.querySelector('#tabla-cxp tbody');
       tbody.innerHTML = '';
 
+      if (!json.data || json.data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">No hay cuentas por pagar registradas.</td></tr>';
+        return;
+      }
+
       json.data.forEach(c => {
-        const saldo = c.monto_total - c.monto_pagado;
+        const total = parseFloat(c.monto_total) || 0;
+        const pagado = parseFloat(c.monto_pagado) || 0;
+        const saldo = total - pagado;
         const tr = document.createElement('tr');
         
         let badgeClass = 'badge-warning';
@@ -453,8 +468,8 @@ const app = {
             <div style="font-size: 12px; color: var(--text-muted);">${c.proveedor_telefono || ''}</div>
           </td>
           <td><code>${c.numero_factura}</code></td>
-          <td><strong>$${c.monto_total.toFixed(2)}</strong></td>
-          <td style="color: var(--success);">$${c.monto_pagado.toFixed(2)}</td>
+          <td><strong>$${total.toFixed(2)}</strong></td>
+          <td style="color: var(--success);">$${pagado.toFixed(2)}</td>
           <td><strong style="color: ${saldo > 0 ? 'var(--danger)' : 'var(--success)'}; font-size: 15px;">$${saldo.toFixed(2)}</strong></td>
           <td>${c.fecha_vencimiento}</td>
           <td><span class="badge ${badgeClass}">${c.estatus}</span></td>
@@ -633,18 +648,26 @@ const app = {
       const json = await res.json();
       this.proveedoresCache = json.data || [];
       const tbody = document.querySelector('#tabla-proveedores tbody');
+      if (!tbody) return;
       tbody.innerHTML = '';
 
+      if (this.proveedoresCache.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">No hay proveedores registrados. Pulsa "+ Nuevo Proveedor" para registrar el primero.</td></tr>';
+        return;
+      }
+
       this.proveedoresCache.forEach(pr => {
+        const saldo = parseFloat(pr.saldo_deuda) || 0;
+        const dias = parseInt(pr.dias_credito, 10) || 0;
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><strong>${pr.nombre_empresa}</strong></td>
           <td>${pr.nombre_contacto || '-'}</td>
           <td>${pr.telefono || '-'}</td>
           <td>${pr.email || '-'}</td>
-          <td><strong>${pr.dias_credito} días</strong></td>
+          <td><strong>${dias} días</strong></td>
           <td>${pr.condiciones_pago || '-'}</td>
-          <td><strong style="color: ${pr.saldo_deuda > 0 ? 'var(--danger)' : 'var(--success)'}; font-size: 14px;">$${pr.saldo_deuda.toFixed(2)}</strong></td>
+          <td><strong style="color: ${saldo > 0 ? 'var(--danger)' : 'var(--success)'}; font-size: 14px;">$${saldo.toFixed(2)}</strong></td>
           <td>
             <div style="display: flex; gap: 6px;">
               <button class="btn btn-secondary btn-sm" onclick="app.editarProveedor(${pr.id})">Editar</button>
@@ -655,7 +678,7 @@ const app = {
         tbody.appendChild(tr);
       });
     } catch (e) {
-      console.error(e);
+      console.error('Error al cargar proveedores:', e);
     }
   },
 

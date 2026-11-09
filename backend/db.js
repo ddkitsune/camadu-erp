@@ -1,7 +1,10 @@
-const { Pool } = require('pg');
+const { Pool, types } = require('pg');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
+
+// Configurar parser para que columnas NUMERIC / DECIMAL (OID 1700) se devuelvan como float en JavaScript
+types.setTypeParser(1700, val => (val === null ? 0 : parseFloat(val)));
 
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
