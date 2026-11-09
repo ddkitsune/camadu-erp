@@ -689,14 +689,6 @@ body {
   box-shadow: 0 6px 18px rgba(219, 39, 119, 0.45);
 }
 
-.login-footer {
-  margin-top: 24px;
-  text-align: center;
-  font-size: 11px;
-  color: var(--text-muted);
-  line-height: 1.4;
-}
-
 .btn-mini-logout {
   background: #fee2e2;
   color: #b91c1c;

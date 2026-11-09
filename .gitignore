@@ -2,8 +2,6 @@
 node_modules/
 
 # Environment variables & credentials
-.env
-.env.local
 
 # Database files (SQLite residuales / dumps)
 *.sqlite
@@ -20,3 +18,4 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
+config.bat
