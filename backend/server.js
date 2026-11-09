@@ -543,11 +543,26 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Debe ingresar su usuario y contraseña.' });
     }
 
+    let cleanUser = String(username).trim().toLowerCase();
+    const cleanPass = String(password).trim();
+
+    // Normalizar alias comunes a su usuario correspondiente
+    const aliases = {
+      'herlin': 'admin',
+      'administrador': 'admin',
+      'vendedor1': 'vendedor',
+      'cajero1': 'cajero',
+      'supervisor1': 'supervisor'
+    };
+    if (aliases[cleanUser]) {
+      cleanUser = aliases[cleanUser];
+    }
+
     const { rows } = await db.query(`
       SELECT id, nombre_completo, username, password, rol, email, telefono, activo 
       FROM usuarios 
-      WHERE LOWER(username) = LOWER($1)
-    `, [username.trim()]);
+      WHERE LOWER(username) = $1
+    `, [cleanUser]);
 
     if (rows.length === 0) {
       return res.status(401).json({ success: false, message: 'Usuario no encontrado en la base de datos.' });
@@ -559,7 +574,7 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(403).json({ success: false, message: 'Este usuario se encuentra inactivo. Comuníquese con el administrador.' });
     }
 
-    if (user.password !== password) {
+    if (user.password.trim() !== cleanPass) {
       return res.status(401).json({ success: false, message: 'Contraseña incorrecta. Verifique sus credenciales.' });
     }
 

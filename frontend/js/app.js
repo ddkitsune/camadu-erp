@@ -95,9 +95,15 @@ const app = {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password: password.trim() })
       });
-      const data = await res.json();
+
+      let data;
+      try {
+        data = await res.json();
+      } catch (e) {
+        throw new Error('El backend no respondió en formato JSON. Si acaba de actualizar el proyecto con git pull, por favor reinicie el servidor con "npm start" en su terminal.');
+      }
 
       if (data.success && data.user) {
         this.currentUser = data.user;
@@ -111,7 +117,7 @@ const app = {
       }
     } catch (err) {
       if (errorEl) {
-        errorEl.textContent = 'Error de conexión con el servidor. Verifique que la aplicación y PostgreSQL estén activos.';
+        errorEl.textContent = err.message || 'Error de conexión con el servidor. Verifique que la aplicación y PostgreSQL estén activos.';
         errorEl.style.display = 'block';
       }
     } finally {
