@@ -1,4 +1,6 @@
 const { Pool } = require('pg');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 const pool = new Pool({
@@ -13,33 +15,13 @@ const pool = new Pool({
 async function initDatabase() {
   try {
     const client = await pool.connect();
-    console.log(' Conectado exitosamente a PostgreSQL 18 (Base de datos: ' + (process.env.DB_NAME || 'camadu_db') + ')');
+    console.log(' Conectado exitosamente a PostgreSQL (Base de datos: ' + (process.env.DB_NAME || 'camadu_db') + ')');
 
-    // Crear tablas de usuarios y configuración si no existen
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS usuarios (
-        id SERIAL PRIMARY KEY,
-        nombre_completo VARCHAR(150) NOT NULL,
-        username VARCHAR(60) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
-        rol VARCHAR(50) NOT NULL DEFAULT 'OPERADOR',
-        email VARCHAR(120),
-        telefono VARCHAR(50),
-        activo BOOLEAN DEFAULT TRUE,
-        creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
+    // 1. Cargar y ejecutar automáticamente el esquema DDL si las tablas no existen
+    const schemaSql = fs.readFileSync(path.join(__dirname, 'schema_postgres.sql'), 'utf8');
+    await client.query(schemaSql);
 
-      CREATE TABLE IF NOT EXISTS configuracion (
-        id SERIAL PRIMARY KEY,
-        clave VARCHAR(80) UNIQUE NOT NULL,
-        valor TEXT NOT NULL,
-        descripcion TEXT,
-        actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-
-    // Sembrar configuración base si no existe
+    // 2. Sembrar configuración base si no existe
     await client.query(`
       INSERT INTO configuracion (clave, valor, descripcion)
       VALUES 
