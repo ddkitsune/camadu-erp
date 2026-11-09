@@ -582,26 +582,43 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Debe ingresar su usuario y contraseña.' });
     }
 
-    let cleanUser = String(username).trim().toLowerCase();
+    const rawInput = String(username).trim().toLowerCase();
     const cleanPass = String(password).trim();
 
     // Normalizar alias comunes a su usuario correspondiente
     const aliases = {
       'herlin': 'admin',
+      'herlin aquino': 'admin',
+      'aquino': 'admin',
       'administrador': 'admin',
+      'vendedor': 'vendedor',
       'vendedor1': 'vendedor',
+      'carlos': 'vendedor',
+      'carlos mendez': 'vendedor',
+      'carlos méndez': 'vendedor',
+      'mendez': 'vendedor',
+      'cajero': 'cajero',
       'cajero1': 'cajero',
-      'supervisor1': 'supervisor'
+      'mariana': 'cajero',
+      'mariana rivas': 'cajero',
+      'rivas': 'cajero',
+      'supervisor': 'supervisor',
+      'supervisor1': 'supervisor',
+      'supervisor general': 'supervisor'
     };
-    if (aliases[cleanUser]) {
-      cleanUser = aliases[cleanUser];
-    }
+    const cleanUser = aliases[rawInput] || rawInput;
 
     const { rows } = await db.query(`
       SELECT id, nombre_completo, username, password, rol, email, telefono, activo 
       FROM usuarios 
-      WHERE LOWER(username) = $1
-    `, [cleanUser]);
+      WHERE LOWER(username) = $1 
+         OR LOWER(nombre_completo) = $1
+         OR LOWER(email) = $1
+         OR LOWER(rol) = $1
+         OR LOWER(username) = $2
+         OR LOWER(nombre_completo) = $2
+      LIMIT 1
+    `, [cleanUser, rawInput]);
 
     if (rows.length === 0) {
       return res.status(401).json({ success: false, message: 'Usuario no encontrado en la base de datos.' });
