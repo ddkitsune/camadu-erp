@@ -1,5 +1,5 @@
 # SISTEMA DE GERENCIA Y PLANIFICACIÓN PARA LA OPTIMIZACIÓN DE PROCESOS ADMINISTRATIVOS
-## HELADERÍA CAMADU C.A. ("¡Un helado, una sonrisa!")
+## COMERCIAL CAMADU C.A.
 
 **Trabajo Especial de Grado para optar al Título de Ingeniero en Informática**  
 * **Institución:** Universidad Alejandro de Humboldt (UAH) - Facultad de Ingeniería  
@@ -130,7 +130,7 @@ erDiagram
 ### 2.1 Texto Académico para el Capítulo I (Tesis UAH)
 
 > **Delimitación Tecnológica y Técnica:**  
-> El desarrollo del *Sistema de Gerencia y Planificación para la Optimización de Procesos Administrativos en la empresa Heladería Camadu C.A.* se fundamenta en una arquitectura de software basada en el desacoplamiento cliente-servidor mediante servicios web **RESTful**. Para la capa del servidor (*Backend*), se seleccionó el entorno de ejecución asíncrono **Node.js** complementado con el framework **Express.js**, garantizando un procesamiento no bloqueante impulsado por eventos (*Event Loop*) para la gestión transaccional de operaciones. Como Sistema Gestor de Bases de Datos Relacionales (SGBDR), se empleó **PostgreSQL versión 18**, aplicando integridad referencial estricta, índices de optimización y transacciones bajo el estándar **ACID** (`BEGIN`, `COMMIT`, `ROLLBACK`) con bloqueo de registros por concurrencia (`SELECT FOR UPDATE`).  
+> El desarrollo del *Sistema de Gerencia y Planificación para la Optimización de Procesos Administrativos en la empresa Comercial Camadu C.A.* se fundamenta en una arquitectura de software basada en el desacoplamiento cliente-servidor mediante servicios web **RESTful**. Para la capa del servidor (*Backend*), se seleccionó el entorno de ejecución asíncrono **Node.js** complementado con el framework **Express.js**, garantizando un procesamiento no bloqueante impulsado por eventos (*Event Loop*) para la gestión transaccional de operaciones. Como Sistema Gestor de Bases de Datos Relacionales (SGBDR), se empleó **PostgreSQL versión 18**, aplicando integridad referencial estricta, índices de optimización y transacciones bajo el estándar **ACID** (`BEGIN`, `COMMIT`, `ROLLBACK`) con bloqueo de registros por concurrencia (`SELECT FOR UPDATE`).  
 > 
 > En la capa de cliente (*Frontend*), se estructuró una aplicación de página única (**SPA - Single Page Application**) desarrollada bajo estándares web nativos empleando **HTML5 semántico**, **CSS3** parametrizado con tokens de diseño adaptados a la identidad corporativa de la empresa, y **JavaScript moderno (ES6+)** para la reactividad de la interfaz y el consumo asíncrono de la API mediante la interfaz `Fetch`. Asimismo, el sistema incorpora un modelo de conversión bimonetaria dinámico (**USD / VES**) gobernado por la tasa oficial del Banco Central de Venezuela (BCV) parametrizable en base de datos, y un módulo de control de acceso basado en roles (**RBAC**).
 
@@ -153,12 +153,12 @@ erDiagram
 
 3. **Frontend (Interfaz de Usuario):**
    * **Arquitectura:** Single Page Application (SPA) nativa con enrutamiento dinámico en memoria.
-   * **Paleta de Colores Corporativa:** Inspirada en el logotipo oficial de *Heladería Camadu*:
+   * **Paleta de Colores Corporativa:** Inspirada en la identidad visual de *Comercial Camadu C.A.*:
      * Rojo Fresa / Carmesí Camadu: `#d81159` / `#c8102e`
      * Turquesa / Glaciar: `#00b4d8`
      * Amarillo Crema: `#ffc72c`
      * Rosa Chicle: `#f72585`
-     * Sidebar Confección Oscuro: `#1a0f20`
+     * Barra Lateral Rosada Ejecutiva: Gradiente corporativo `#db2777` - `#be185d` - `#9d174d`
    * **Soporte Bimonetario:** Conversión en tiempo real de precios a Bolívares (`Bs.`) calculada según la tasa activa.
 
 ---

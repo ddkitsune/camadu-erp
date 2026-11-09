@@ -29,9 +29,12 @@ async function initDatabase() {
       INSERT INTO configuracion (clave, valor, descripcion)
       VALUES 
         ('tasa_dolar', '48.50', 'Tasa oficial de cambio USD a Bolívares (VES)'),
-        ('nombre_empresa', 'Heladería Camadu C.A.', 'Razón social de la empresa'),
-        ('lema', '¡Un helado, una sonrisa!', 'Slogan comercial')
+        ('nombre_empresa', 'Comercial Camadu C.A.', 'Razón social de la empresa'),
+        ('lema', 'Distribución y Comercio', 'Slogan comercial')
       ON CONFLICT (clave) DO NOTHING;
+
+      UPDATE configuracion SET valor = 'Comercial Camadu C.A.' WHERE clave = 'nombre_empresa' AND valor = 'Heladería Camadu C.A.';
+      UPDATE configuracion SET valor = 'Distribución y Comercio' WHERE clave = 'lema' AND valor = '¡Un helado, una sonrisa!';
     `);
 
     // Sembrar usuarios si no hay ninguno

@@ -15,7 +15,7 @@ ax.set_facecolor('#f8fafc')
 # Title
 ax.text(900, 1160, "DIAGRAMA ENTIDAD - RELACIÓN (DER) NORMALIZADO", 
         fontsize=18, fontweight='bold', ha='center', va='center', color='#0f172a', fontfamily='sans-serif')
-ax.text(900, 1130, "Sistema de Gerencia y Planificación ERP | Heladería Camadu C.A. (PostgreSQL 18)", 
+ax.text(900, 1130, "Sistema de Gerencia y Planificación ERP | Comercial Camadu C.A. (PostgreSQL 18)", 
         fontsize=12, ha='center', va='center', color='#64748b', fontfamily='sans-serif')
 
 # Function to draw an entity table

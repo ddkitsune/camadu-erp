@@ -1,6 +1,5 @@
-# 🍦 Heladería Camadu C.A. - Sistema de Gerencia y Planificación ERP
+# 🏢 Comercial Camadu C.A. - Sistema de Gerencia y Planificación ERP
 
-> **"¡Un helado, una sonrisa!"**  
 > Prototipo Operativo de Sistema de Gestión Empresarial desarrollado como Trabajo Especial de Grado para optar al Título de Ingeniero en Informática en la **Universidad Alejandro de Humboldt (UAH)**.
 
 ---
