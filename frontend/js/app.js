@@ -5,13 +5,225 @@ const app = {
   usuariosCache: [],
   tasaDolar: 48.50,
 
+  // Usuario en sesión activa (Simulación de Roles RBAC)
+  currentUser: {
+    id: 1,
+    nombre_completo: 'Herlin Aquino',
+    username: 'herlin',
+    rol: 'ADMINISTRADOR'
+  },
+
   init() {
+    this.initCurrentUser();
     this.setupNavigation();
     this.startClock();
     this.loadTasa();
     this.loadDashboard();
     this.loadProductosSelect();
-    this.loadProveedoresSelect();
+    if (this.currentUser.rol !== 'VENDEDOR' && this.currentUser.rol !== 'CAJERO') {
+      this.loadProveedoresSelect();
+    }
+    this.aplicarPermisosRol();
+  },
+
+  // Inicializar o restaurar usuario activo desde LocalStorage
+  initCurrentUser() {
+    try {
+      const saved = localStorage.getItem('camadu_active_user');
+      if (saved) {
+        this.currentUser = JSON.parse(saved);
+      }
+    } catch (e) {
+      console.warn('No se pudo restaurar usuario activo:', e);
+    }
+  },
+
+  // Helper para iniciales de avatar
+  getInitials(name) {
+    if (!name) return 'U';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return parts[0].slice(0, 2).toUpperCase();
+  },
+
+  // Helper para formato de rol en UI
+  getRolLabel(rol) {
+    rol = (rol || '').toUpperCase();
+    if (rol === 'ADMINISTRADOR') return '👑 Administrador';
+    if (rol === 'SUPERVISOR') return '⚡ Supervisor';
+    if (rol === 'VENDEDOR') return '🏷️ Vendedor';
+    if (rol === 'CAJERO') return '💵 Cajero';
+    return '👤 ' + rol;
+  },
+
+  getRolShort(rol) {
+    rol = (rol || '').toUpperCase();
+    if (rol === 'ADMINISTRADOR') return '👑 Admin';
+    if (rol === 'SUPERVISOR') return '⚡ Superv';
+    if (rol === 'VENDEDOR') return '🏷️ Vendedor';
+    if (rol === 'CAJERO') return '💵 Cajero';
+    return '👤 Operador';
+  },
+
+  // Centralizador de peticiones con cabeceras de autorización RBAC
+  async apiFetch(url, options = {}) {
+    const rol = this.currentUser ? this.currentUser.rol : 'ADMINISTRADOR';
+    const uid = this.currentUser ? this.currentUser.id : 1;
+    options.headers = {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+      'x-user-role': rol,
+      'x-user-id': uid
+    };
+    const res = await fetch(url, options);
+    if (res.status === 403) {
+      const data = await res.json().catch(() => ({}));
+      alert('🚫 ' + (data.message || 'Acceso Denegado por permisos de rol.'));
+    }
+    return res;
+  },
+
+  // Aplicar restricciones de interfaz según el rol del usuario
+  aplicarPermisosRol() {
+    const rol = (this.currentUser.rol || '').toUpperCase();
+
+    // 1. Actualizar pie de barra lateral (Sidebar)
+    const avatarEl = document.getElementById('sidebar-user-avatar');
+    if (avatarEl) avatarEl.textContent = this.getInitials(this.currentUser.nombre_completo);
+
+    const nameEl = document.getElementById('sidebar-user-name');
+    if (nameEl) nameEl.textContent = this.currentUser.nombre_completo;
+
+    const roleEl = document.getElementById('sidebar-user-role');
+    if (roleEl) roleEl.textContent = this.getRolLabel(rol);
+
+    // 2. Actualizar badge superior de usuario activo
+    const navBadge = document.getElementById('nav-user-badge');
+    if (navBadge) {
+      navBadge.textContent = `👤 ${this.currentUser.nombre_completo} (${this.getRolShort(rol)})`;
+    }
+
+    // 3. Prellenar responsable de movimiento en almacén
+    const respInput = document.getElementById('mov-responsable');
+    if (respInput) respInput.value = this.currentUser.nombre_completo;
+
+    // 4. Regla estricta: Vendedores y Cajeros SIN ACCESO A PROVEEDORES
+    const navItemProv = document.getElementById('nav-item-proveedores');
+    if (rol === 'VENDEDOR' || rol === 'CAJERO') {
+      if (navItemProv) navItemProv.style.display = 'none';
+      if (this.activeView === 'proveedores') {
+        this.navigateTo('dashboard');
+      }
+    } else {
+      if (navItemProv) navItemProv.style.display = 'flex';
+    }
+
+    // 5. Regla estricta: Solo Administradores pueden gestionar usuarios
+    const navItemUsers = document.getElementById('nav-item-usuarios');
+    const navSecSeg = document.getElementById('nav-sec-seguridad');
+    if (rol !== 'ADMINISTRADOR') {
+      if (navItemUsers) navItemUsers.style.display = 'none';
+      if (navSecSeg) navSecSeg.style.display = 'none';
+      if (this.activeView === 'usuarios') {
+        this.navigateTo('dashboard');
+      }
+    } else {
+      if (navItemUsers) navItemUsers.style.display = 'flex';
+      if (navSecSeg) navSecSeg.style.display = 'block';
+    }
+  },
+
+  // Abrir modal para alternar o simular usuario activo
+  async abrirModalCambiarUsuario() {
+    try {
+      const res = await fetch('/api/usuarios');
+      const json = await res.json();
+      const listContainer = document.getElementById('lista-usuarios-switcher');
+      if (!listContainer) return;
+      listContainer.innerHTML = '';
+
+      const users = json.data || [];
+      if (users.length === 0) {
+        listContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">No hay usuarios registrados en PostgreSQL.</p>';
+      } else {
+        users.forEach(u => {
+          const isActive = this.currentUser && this.currentUser.id === u.id;
+          const card = document.createElement('div');
+          card.className = `user-card-item ${isActive ? 'active-user' : ''}`;
+          card.onclick = () => this.cambiarUsuarioActivo(u);
+
+          let rolBadgeClass = 'badge-operador';
+          let rolCondicion = '';
+          if (u.rol === 'ADMINISTRADOR') {
+            rolBadgeClass = 'badge-admin';
+            rolCondicion = 'Acceso Total al Sistema';
+          } else if (u.rol === 'SUPERVISOR') {
+            rolBadgeClass = 'badge-supervisor';
+            rolCondicion = 'Supervisión de Almacén y Finanzas';
+          } else if (u.rol === 'VENDEDOR') {
+            rolBadgeClass = 'badge-vendedor';
+            rolCondicion = '🚫 SIN ACCESO A PROVEEDORES';
+          } else if (u.rol === 'CAJERO') {
+            rolBadgeClass = 'badge-cajero';
+            rolCondicion = '🚫 SIN ACCESO A PROVEEDORES';
+          } else {
+            rolBadgeClass = 'badge-operador';
+            rolCondicion = 'Operador Estándar';
+          }
+
+          card.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #be185d); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+                ${this.getInitials(u.nombre_completo)}
+              </div>
+              <div>
+                <div style="font-weight: 700; font-size: 14px; color: var(--text-main);">${u.nombre_completo}</div>
+                <div style="font-size: 11px; color: var(--text-muted);">
+                  <code>${u.username}</code> · <span style="color: ${u.rol === 'VENDEDOR' || u.rol === 'CAJERO' ? 'var(--danger)' : 'var(--primary)'}; font-weight: 600;">${rolCondicion}</span>
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="badge ${rolBadgeClass}">${this.getRolLabel(u.rol)}</span>
+              ${isActive ? '<span style="font-size: 16px; color: var(--success); font-weight: 800;" title="Usuario Activo">✓</span>' : ''}
+            </div>
+          `;
+          listContainer.appendChild(card);
+        });
+      }
+
+      const modal = document.getElementById('modal-cambiar-usuario');
+      if (modal) modal.classList.add('active');
+    } catch (e) {
+      alert('Error cargando lista de usuarios');
+    }
+  },
+
+  // Seleccionar usuario para sesión activa
+  cambiarUsuarioActivo(user) {
+    this.currentUser = user;
+    try {
+      localStorage.setItem('camadu_active_user', JSON.stringify(user));
+    } catch (e) {}
+
+    this.aplicarPermisosRol();
+    this.cerrarModal('modal-cambiar-usuario');
+
+    const rol = (user.rol || '').toUpperCase();
+    if (rol === 'VENDEDOR' || rol === 'CAJERO') {
+      alert(`✅ Sesión activa cambiada a:\n👤 ${user.nombre_completo}\n🏷️ Rol: ${rol}\n\n🔒 CONDICIÓN APLICADA:\nEste usuario NO tiene acceso al Directorio de Proveedores ni a la modificación de compras.`);
+    } else {
+      alert(`✅ Sesión activa cambiada a:\n👤 ${user.nombre_completo}\n👑 Rol: ${rol}\n\n✨ Acceso total activado.`);
+    }
+
+    // Redirigir si la vista actual no está permitida
+    if (this.activeView === 'proveedores' && (rol === 'VENDEDOR' || rol === 'CAJERO')) {
+      this.navigateTo('dashboard');
+    } else if (this.activeView === 'usuarios' && rol !== 'ADMINISTRADOR') {
+      this.navigateTo('dashboard');
+    } else {
+      this.navigateTo(this.activeView);
+    }
   },
 
   // Reloj en tiempo real
@@ -42,6 +254,11 @@ const app = {
   },
 
   abrirModalTasa() {
+    const rol = (this.currentUser && this.currentUser.rol || '').toUpperCase();
+    if (rol === 'VENDEDOR' || rol === 'CAJERO') {
+      return alert(`🚫 Acceso Denegado: Los usuarios con rol '${rol}' no tienen autorización para modificar la tasa oficial BCV.`);
+    }
+
     const input = document.getElementById('tasa-valor-input');
     if (input) input.value = this.tasaDolar.toFixed(2);
     const modal = document.getElementById('modal-tasa');
@@ -55,9 +272,8 @@ const app = {
     if (!valor || valor <= 0) return alert('Por favor ingresa una tasa válida mayor a 0');
 
     try {
-      const res = await fetch('/api/configuracion/tasa', {
+      const res = await this.apiFetch('/api/configuracion/tasa', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tasa: valor })
       });
       const json = await res.json();
@@ -91,6 +307,17 @@ const app = {
   },
 
   navigateTo(viewName) {
+    const rol = (this.currentUser && this.currentUser.rol || '').toUpperCase();
+
+    // Verificación estricta de permisos de navegación
+    if ((rol === 'VENDEDOR' || rol === 'CAJERO') && viewName === 'proveedores') {
+      return alert(`🚫 Acceso Denegado: Su rol ('${rol}') no tiene autorización para acceder al Directorio de Proveedores.`);
+    }
+
+    if (rol !== 'ADMINISTRADOR' && viewName === 'usuarios') {
+      return alert(`🚫 Acceso Denegado: Se requieren permisos de ADMINISTRADOR para acceder al Módulo de Gestión de Usuarios.`);
+    }
+
     this.activeView = viewName;
     document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => {
       el.classList.toggle('active', el.getAttribute('data-view') === viewName);
@@ -106,7 +333,7 @@ const app = {
     // Actualizar encabezados
     const titles = {
       dashboard: ['Dashboard General', 'Visión 360° del flujo operativo y control de stock'],
-      inventario: ['Módulo 1: Control de Inventario y Stock', 'Catálogo de helados, productos e insumos con umbrales mínimos'],
+      inventario: ['Módulo 1: Control de Inventario y Stock', 'Catálogo de piezas, productos e insumos con umbrales mínimos'],
       movimientos: ['Módulo 2: Control de Entradas y Salidas', 'Trazabilidad física de movimientos (compras, ventas y mermas)'],
       cxp: ['Módulo 3: Cuentas por Pagar', 'Control financiero de deudas a proveedores y vencimientos'],
       reportes: ['Módulo 4: Productos Más Vendidos', 'Análisis mensual de rotación de productos para compras estratégicas'],
@@ -643,8 +870,15 @@ const app = {
   // 🏢 MÓDULO 5: PROVEEDORES
   // ==========================================
   async loadProveedores() {
+    const rol = (this.currentUser && this.currentUser.rol || '').toUpperCase();
+    if (rol === 'VENDEDOR' || rol === 'CAJERO') {
+      alert(`🚫 Acceso Denegado: Su rol ('${rol}') no tiene autorización para acceder al Directorio de Proveedores.`);
+      this.navigateTo('dashboard');
+      return;
+    }
+
     try {
-      const res = await fetch('/api/proveedores');
+      const res = await this.apiFetch('/api/proveedores');
       const json = await res.json();
       this.proveedoresCache = json.data || [];
       const tbody = document.querySelector('#tabla-proveedores tbody');
@@ -683,6 +917,11 @@ const app = {
   },
 
   abrirModalNuevoProveedor() {
+    const rol = (this.currentUser && this.currentUser.rol || '').toUpperCase();
+    if (rol === 'VENDEDOR' || rol === 'CAJERO') {
+      return alert(`🚫 Acceso Denegado: Su rol ('${rol}') no tiene permisos para crear proveedores.`);
+    }
+
     document.getElementById('form-proveedor').reset();
     document.getElementById('prov-id').value = '';
     document.getElementById('modal-prov-titulo').textContent = 'Registrar Proveedor';
@@ -690,6 +929,11 @@ const app = {
   },
 
   editarProveedor(id) {
+    const rol = (this.currentUser && this.currentUser.rol || '').toUpperCase();
+    if (rol === 'VENDEDOR' || rol === 'CAJERO') {
+      return alert(`🚫 Acceso Denegado: Su rol ('${rol}') no tiene permisos para editar proveedores.`);
+    }
+
     const pr = this.proveedoresCache.find(item => item.id === id);
     if (!pr) return;
     document.getElementById('prov-id').value = pr.id;
@@ -722,9 +966,8 @@ const app = {
     const url = id ? `/api/proveedores/${id}` : '/api/proveedores';
 
     try {
-      const res = await fetch(url, {
+      const res = await this.apiFetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
       const json = await res.json();
@@ -743,7 +986,7 @@ const app = {
   async eliminarProveedor(id) {
     if (!confirm('¿Confirma que desea eliminar este proveedor?')) return;
     try {
-      const res = await fetch(`/api/proveedores/${id}`, { method: 'DELETE' });
+      const res = await this.apiFetch(`/api/proveedores/${id}`, { method: 'DELETE' });
       const json = await res.json();
       if (json.success) {
         this.loadProveedores();
@@ -777,11 +1020,15 @@ const app = {
         const tr = document.createElement('tr');
         let rolBadge = '';
         if (u.rol === 'ADMINISTRADOR') {
-          rolBadge = '<span class="badge" style="background: #fce4ec; color: #d81159; font-weight: 700;">👑 Administrador</span>';
+          rolBadge = '<span class="badge badge-admin">👑 Administrador</span>';
         } else if (u.rol === 'SUPERVISOR') {
-          rolBadge = '<span class="badge" style="background: #e0f2fe; color: #0284c7; font-weight: 700;">⚡ Supervisor</span>';
+          rolBadge = '<span class="badge badge-supervisor">⚡ Supervisor</span>';
+        } else if (u.rol === 'VENDEDOR') {
+          rolBadge = '<span class="badge badge-vendedor">🏷️ Vendedor (Sin Proveedores)</span>';
+        } else if (u.rol === 'CAJERO') {
+          rolBadge = '<span class="badge badge-cajero">💵 Cajero (Sin Proveedores)</span>';
         } else {
-          rolBadge = '<span class="badge" style="background: #ecfdf5; color: #059669; font-weight: 700;">👤 Operador / Caja</span>';
+          rolBadge = '<span class="badge badge-operador">👤 Operador</span>';
         }
 
         const estadoBadge = u.activo 
@@ -855,9 +1102,8 @@ const app = {
     const url = id ? `/api/usuarios/${id}` : '/api/usuarios';
 
     try {
-      const res = await fetch(url, {
+      const res = await this.apiFetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
       const json = await res.json();
@@ -876,7 +1122,7 @@ const app = {
   async eliminarUsuario(id) {
     if (!confirm('¿Confirma que desea eliminar este usuario del sistema?')) return;
     try {
-      const res = await fetch(`/api/usuarios/${id}`, { method: 'DELETE' });
+      const res = await this.apiFetch(`/api/usuarios/${id}`, { method: 'DELETE' });
       const json = await res.json();
       if (json.success) {
         this.loadUsuarios();

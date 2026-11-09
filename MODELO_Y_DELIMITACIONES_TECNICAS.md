@@ -30,7 +30,7 @@ erDiagram
         varchar nombre_completo "NOT NULL"
         varchar username UK "UNIQUE NOT NULL"
         varchar password "NOT NULL"
-        varchar rol "ADMINISTRADOR, SUPERVISOR, OPERADOR"
+        varchar rol "ADMINISTRADOR, SUPERVISOR, VENDEDOR, CAJERO, OPERADOR"
         varchar email
         varchar telefono
         boolean activo "DEFAULT TRUE"
@@ -171,8 +171,23 @@ erDiagram
 | **Movimientos de Almacén** | Registro transaccional de compras, ventas, mermas y ajustes con validación atómica de existencias. | No genera órdenes de despacho automáticas con empresas de logística externa. |
 | **Cuentas por Pagar (CxP)** | Registro de facturas comerciales, seguimiento de vencimientos y abonos parciales/totales. | No realiza transferencias bancarias automatizadas con consorcios bancarios. |
 | **Inteligencia y Rotación** | Ranking mensual con medallas (🥇🥈🥉), porcentaje de participación y categorización de demanda (Alta, Media, Baja). | No incluye algoritmos de pronóstico predictivo con Machine Learning. |
-| **Gestión de Usuarios** | CRUD completo de usuarios con asignación de roles (Administrador, Supervisor, Operador) y control activo/inactivo. | No integra autenticación federada externa (OAuth2 / Google Sign-In). |
+| **Gestión de Usuarios & RBAC** | CRUD de usuarios y control de acceso basado en roles (**ADMINISTRADOR, SUPERVISOR, VENDEDOR, CAJERO**), con restricción estricta de acceso al módulo de proveedores para roles de ventas y caja. | No integra autenticación federada externa (OAuth2 / Google Sign-In). |
 | **Facturación Fiscal** | Emisión de comprobantes y notas de venta operativas para control interno de almacén. | No se conecta directamente con impresoras fiscales homologadas por el SENIAT. |
+
+---
+
+### 2.4 Matriz de Control de Acceso por Roles (RBAC)
+
+| Módulo del Sistema | ADMINISTRADOR | SUPERVISOR | VENDEDOR | CAJERO | Justificación Administrativa y de Seguridad |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **Dashboard General** | ✅ Sí | ✅ Sí | ✅ Sí | ✅ Sí | Visibilidad global de indicadores y estado de stock para la toma de decisiones. |
+| **M1: Control de Inventario** | ✅ Sí | ✅ Sí | ✅ Sí | ✅ Sí | Consulta de catálogo y verificación de existencias para la venta o reposición. |
+| **M2: Entradas y Salidas** | ✅ Sí | ✅ Sí | ✅ Sí | ✅ Sí | Registro de ventas al mostrador y movimientos de mercancía por operador. |
+| **M3: Cuentas por Pagar** | ✅ Sí | ✅ Sí | ❌ No | ❌ No | Información financiera confidencial restringida a gerencia y supervisión. |
+| **M4: Más Vendidos (Reportes)**| ✅ Sí | ✅ Sí | ✅ Sí | ✅ Sí | Consulta de rotación para orientación de metas comerciales. |
+| **M5: Directorio Proveedores** | ✅ Sí | ✅ Sí | 🚫 **SIN ACCESO** | 🚫 **SIN ACCESO** | **Restricción de Negocio:** Protege contactos directos, costos de compra y condiciones crediticias. |
+| **M6: Gestión de Usuarios** | ✅ Sí | ❌ No | ❌ No | ❌ No | Exclusivo del Administrador para la creación y revocación de accesos al sistema. |
+| **Modificar Tasa BCV** | ✅ Sí | ✅ Sí | ❌ No | ❌ No | Protege el factor cambiario oficial contra manipulaciones no autorizadas. |
 
 ---
 

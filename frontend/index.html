@@ -39,12 +39,12 @@
           <span>M2: Entradas y Salidas</span>
         </a>
 
-        <div class="nav-section-title">Finanzas & Compras</div>
-        <a class="nav-item" data-view="cxp">
+        <div class="nav-section-title" id="nav-sec-finanzas">Finanzas & Compras</div>
+        <a class="nav-item" data-view="cxp" id="nav-item-cxp">
           <span class="nav-icon">💳</span>
           <span>M3: Cuentas por Pagar</span>
         </a>
-        <a class="nav-item" data-view="proveedores">
+        <a class="nav-item" data-view="proveedores" id="nav-item-proveedores">
           <span class="nav-icon">🏢</span>
           <span>M5: Directorio Proveedores</span>
         </a>
@@ -55,19 +55,20 @@
           <span>M4: Más Vendidos del Mes</span>
         </a>
 
-        <div class="nav-section-title">Seguridad & Ajustes</div>
-        <a class="nav-item" data-view="usuarios">
+        <div class="nav-section-title" id="nav-sec-seguridad">Seguridad & Ajustes</div>
+        <a class="nav-item" data-view="usuarios" id="nav-item-usuarios">
           <span class="nav-icon">👥</span>
           <span>M6: Gestión de Usuarios</span>
         </a>
       </nav>
 
-      <div class="sidebar-footer">
-        <div class="user-avatar">HA</div>
-        <div class="user-details">
-          <h4>Herlin Aquino</h4>
-          <p>Administrador / Comercial Camadu</p>
+      <div class="sidebar-footer" onclick="app.abrirModalCambiarUsuario()" style="cursor: pointer;" title="Clic para simular sesión con otro rol (Vendedor, Cajero, Admin...)">
+        <div class="user-avatar" id="sidebar-user-avatar">HA</div>
+        <div class="user-details" style="flex: 1; min-width: 0;">
+          <h4 id="sidebar-user-name" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Herlin Aquino</h4>
+          <p id="sidebar-user-role" style="font-size: 11px;">👑 Administrador</p>
         </div>
+        <span style="font-size: 13px; opacity: 0.8; margin-left: auto;" title="Cambiar usuario">🔄</span>
       </div>
     </aside>
 
@@ -80,6 +81,11 @@
           <p id="page-subtitle">Visión 360° del flujo operativo y control de stock</p>
         </div>
         <div class="navbar-actions">
+          <!-- Selector Rápido de Usuario / Rol Simulado -->
+          <div class="currency-badge user-switch-badge" onclick="app.abrirModalCambiarUsuario()" title="Clic para cambiar de usuario y probar permisos en tiempo real">
+            <span id="nav-user-badge">👤 Herlin Aquino (👑 Admin)</span>
+            <small style="opacity: 0.75; font-size: 10px;">Cambiar ▾</small>
+          </div>
           <!-- Tasa del Día Dinámica -->
           <div class="currency-badge tasa-badge" onclick="app.abrirModalTasa()" title="Clic para actualizar la tasa oficial del día en la base de datos">
             <span id="nav-tasa-dolar">💵 Tasa BCV: 1 USD = Bs. 48.50</span>
@@ -642,7 +648,9 @@
               <select id="user-rol" class="form-control" required>
                 <option value="ADMINISTRADOR">👑 Administrador (Acceso Total)</option>
                 <option value="SUPERVISOR">⚡ Supervisor (Almacén y Finanzas)</option>
-                <option value="OPERADOR">👤 Operador / Caja (Entradas y Salidas)</option>
+                <option value="VENDEDOR">🏷️ Vendedor (Ventas y Stock - Sin acceso a Proveedores)</option>
+                <option value="CAJERO">💵 Cajero (Caja y Cobranzas - Sin acceso a Proveedores)</option>
+                <option value="OPERADOR">👤 Operador General</option>
               </select>
             </div>
           </div>
@@ -699,6 +707,27 @@
           <button type="submit" class="btn btn-primary">Guardar Nueva Tasa</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CAMBIO RÁPIDO DE USUARIO / SIMULACIÓN DE ROLES (RBAC) -->
+  <div class="modal-overlay" id="modal-cambiar-usuario">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3>Simular Sesión de Usuario (Control de Roles)</h3>
+        <button class="btn-close" onclick="app.cerrarModal('modal-cambiar-usuario')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+          Selecciona un usuario de PostgreSQL para probar en tiempo real las restricciones de acceso por rol (ej: Vendedores y Cajeros <strong>sin acceso a proveedores</strong>):
+        </p>
+        <div id="lista-usuarios-switcher" style="display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto;">
+          <!-- Se genera dinámicamente -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="app.cerrarModal('modal-cambiar-usuario')">Cerrar</button>
+      </div>
     </div>
   </div>
 

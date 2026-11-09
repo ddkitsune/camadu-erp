@@ -381,9 +381,35 @@ app.get('/api/reportes/mas-vendidos', async (req, res) => {
 });
 
 // ==========================================
+// 🛡️ MIDDLEWARES DE CONTROL DE ACCESO (RBAC)
+// ==========================================
+// Condición estricta: Vendedores y Cajeros no tienen acceso a proveedores
+function verificarAccesoProveedores(req, res, next) {
+  const role = (req.headers['x-user-role'] || '').toUpperCase();
+  if (role === 'VENDEDOR' || role === 'CAJERO') {
+    return res.status(403).json({
+      success: false,
+      message: `Acceso Denegado: Los usuarios con rol '${role}' no tienen autorización para consultar ni gestionar el Directorio de Proveedores.`
+    });
+  }
+  next();
+}
+
+function verificarSoloAdmin(req, res, next) {
+  const role = (req.headers['x-user-role'] || '').toUpperCase();
+  if (role && role !== 'ADMINISTRADOR') {
+    return res.status(403).json({
+      success: false,
+      message: 'Acceso Denegado: Se requieren permisos de ADMINISTRADOR para realizar esta acción.'
+    });
+  }
+  next();
+}
+
+// ==========================================
 // 🏢 MÓDULO 5: LISTA DE PROVEEDORES
 // ==========================================
-app.get('/api/proveedores', async (req, res) => {
+app.get('/api/proveedores', verificarAccesoProveedores, async (req, res) => {
   try {
     const { rows } = await db.query(`
       SELECT pr.*, 
@@ -398,7 +424,7 @@ app.get('/api/proveedores', async (req, res) => {
   }
 });
 
-app.post('/api/proveedores', async (req, res) => {
+app.post('/api/proveedores', verificarAccesoProveedores, async (req, res) => {
   try {
     const { nombre_empresa, nombre_contacto, telefono, email, direccion, condiciones_pago, dias_credito } = req.body;
     if (!nombre_empresa) {
@@ -425,7 +451,7 @@ app.post('/api/proveedores', async (req, res) => {
   }
 });
 
-app.put('/api/proveedores/:id', async (req, res) => {
+app.put('/api/proveedores/:id', verificarAccesoProveedores, async (req, res) => {
   try {
     const { id } = req.params;
     const { nombre_empresa, nombre_contacto, telefono, email, direccion, condiciones_pago, dias_credito } = req.body;
@@ -451,7 +477,7 @@ app.put('/api/proveedores/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/proveedores/:id', async (req, res) => {
+app.delete('/api/proveedores/:id', verificarAccesoProveedores, async (req, res) => {
   try {
     const { id } = req.params;
     await db.query('DELETE FROM proveedores WHERE id = $1', [id]);
@@ -523,7 +549,7 @@ app.get('/api/usuarios', async (req, res) => {
   }
 });
 
-app.post('/api/usuarios', async (req, res) => {
+app.post('/api/usuarios', verificarSoloAdmin, async (req, res) => {
   try {
     const { nombre_completo, username, password, rol, email, telefono } = req.body;
     if (!nombre_completo || !username || !password) {
@@ -552,7 +578,7 @@ app.post('/api/usuarios', async (req, res) => {
   }
 });
 
-app.put('/api/usuarios/:id', async (req, res) => {
+app.put('/api/usuarios/:id', verificarSoloAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { nombre_completo, username, password, rol, email, telefono, activo } = req.body;
@@ -601,7 +627,7 @@ app.put('/api/usuarios/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/usuarios/:id', async (req, res) => {
+app.delete('/api/usuarios/:id', verificarSoloAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     

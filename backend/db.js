@@ -37,7 +37,7 @@ async function initDatabase() {
       UPDATE configuracion SET valor = 'Distribución y Comercio' WHERE clave = 'lema' AND valor = '¡Un helado, una sonrisa!';
     `);
 
-    // Sembrar usuarios si no hay ninguno
+    // Sembrar usuarios si no hay ninguno o actualizar a los nuevos roles VENDEDOR y CAJERO
     const uRes = await client.query('SELECT COUNT(*) as count FROM usuarios');
     if (parseInt(uRes.rows[0].count, 10) === 0) {
       await client.query(`
@@ -45,9 +45,23 @@ async function initDatabase() {
         VALUES 
           ('Herlin Aquino', 'herlin', 'admin123', 'ADMINISTRADOR', 'herlin@camadu.com', '+58 412-1112233', true),
           ('Deivy González', 'deivy', 'admin123', 'ADMINISTRADOR', 'deivy@camadu.com', '+58 414-9998877', true),
-          ('Cajero Principal', 'cajero1', '1234', 'OPERADOR', 'ventas@camadu.com', '+58 424-5556677', true)
+          ('Carlos Méndez', 'vendedor1', '1234', 'VENDEDOR', 'ventas@camadu.com', '+58 412-3334455', true),
+          ('Mariana Rivas', 'cajero1', '1234', 'CAJERO', 'caja@camadu.com', '+58 424-5556677', true),
+          ('Supervisor Almacén', 'supervisor1', 'admin123', 'SUPERVISOR', 'supervisor@camadu.com', '+58 416-8889900', true)
       `);
       console.log('👥 Usuarios iniciales sembrados en PostgreSQL.');
+    } else {
+      // Garantizar que existan usuarios para los roles VENDEDOR y CAJERO (sin acceso a proveedores)
+      await client.query(`
+        INSERT INTO usuarios (nombre_completo, username, password, rol, email, telefono, activo)
+        VALUES 
+          ('Carlos Méndez', 'vendedor1', '1234', 'VENDEDOR', 'ventas@camadu.com', '+58 412-3334455', true)
+        ON CONFLICT (username) DO UPDATE SET rol = 'VENDEDOR';
+
+        UPDATE usuarios 
+        SET rol = 'CAJERO', nombre_completo = 'Mariana Rivas (Caja)'
+        WHERE username = 'cajero1';
+      `);
     }
 
     // Verificar si hay productos, si no hay, sembrar datos de demostración
