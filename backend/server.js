@@ -13,6 +13,45 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 // ==========================================
+// 🩺 DIAGNÓSTICO DE BASE DE DATOS POSTGRESQL
+// ==========================================
+app.get('/api/db-status', async (req, res) => {
+  try {
+    const { rows: versionRows } = await db.query('SELECT version()');
+    const { rows: userRows } = await db.query('SELECT id, nombre_completo, username, rol, activo FROM usuarios ORDER BY id ASC');
+    res.json({
+      success: true,
+      status: 'Conectado a PostgreSQL',
+      database: process.env.DB_NAME || 'camadu_db',
+      usuarios_count: userRows.length,
+      usuarios: userRows,
+      postgres_version: versionRows[0]?.version?.split(' on ')[0] || 'OK'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      status: 'Error al conectar con PostgreSQL',
+      message: error.message,
+      code: error.code || 'UNKNOWN',
+      detail: 'Verifique que PostgreSQL esté corriendo y que .env tenga los datos correctos (DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD).'
+    });
+  }
+});
+
+app.get('/api/db-init', async (req, res) => {
+  try {
+    if (db.initDatabase) {
+      await db.initDatabase();
+      res.json({ success: true, message: 'Base de datos inicializada y usuarios sembrados exitosamente.' });
+    } else {
+      res.status(400).json({ success: false, message: 'Función initDatabase no disponible.' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// ==========================================
 // 📊 RESUMEN / KPIS DEL DASHBOARD (Estilo SOFI)
 // ==========================================
 app.get('/api/dashboard/stats', async (req, res) => {
