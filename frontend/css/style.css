@@ -689,50 +689,8 @@ body {
   box-shadow: 0 6px 18px rgba(219, 39, 119, 0.45);
 }
 
-.login-quick-demo {
-  margin-top: 22px;
-  padding-top: 18px;
-  border-top: 1px dashed var(--border);
-  text-align: center;
-}
-
-.quick-demo-title {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
-  margin-bottom: 10px;
-}
-
-.quick-demo-buttons {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.btn-demo-pill {
-  padding: 6px 12px;
-  font-size: 11.5px;
-  font-weight: 600;
-  border-radius: var(--radius-full);
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.demo-admin { background: #fce4ec; color: #d81159; border-color: #f8bbd0; }
-.demo-admin:hover { background: #d81159; color: white; }
-.demo-supervisor { background: #e0f2fe; color: #0284c7; border-color: #bae6fd; }
-.demo-supervisor:hover { background: #0284c7; color: white; }
-.demo-vendedor { background: #f3e8ff; color: #7e22ce; border-color: #e9d5ff; }
-.demo-vendedor:hover { background: #7e22ce; color: white; }
-.demo-cajero { background: #fef3c7; color: #b45309; border-color: #fde68a; }
-.demo-cajero:hover { background: #b45309; color: white; }
-
 .login-footer {
-  margin-top: 22px;
+  margin-top: 24px;
   text-align: center;
   font-size: 11px;
   color: var(--text-muted);

@@ -27,7 +27,7 @@
           <label for="login-username" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-main);">Usuario del Sistema</label>
           <div class="input-icon-group">
             <span class="input-icon">👤</span>
-            <input type="text" id="login-username" class="form-control" placeholder="Ej: herlin, vendedor1, cajero1" required autofocus autocomplete="username">
+            <input type="text" id="login-username" class="form-control" required autofocus autocomplete="username">
           </div>
         </div>
 
@@ -35,7 +35,7 @@
           <label for="login-password" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-main);">Contraseña</label>
           <div class="input-icon-group">
             <span class="input-icon">🔒</span>
-            <input type="password" id="login-password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+            <input type="password" id="login-password" class="form-control" required autocomplete="current-password">
             <button type="button" class="btn-toggle-pwd" onclick="app.toggleLoginPwd()" title="Mostrar/ocultar contraseña">👁️</button>
           </div>
         </div>
@@ -44,25 +44,6 @@
           <span>Ingresar al Sistema</span>
           <span style="font-size: 18px;">→</span>
         </button>
-
-        <!-- Accesos rápidos para la defensa / demostración -->
-        <div class="login-quick-demo">
-          <p class="quick-demo-title">Acceso rápido para evaluación académica:</p>
-          <div class="quick-demo-buttons">
-            <button type="button" class="btn-demo-pill demo-admin" onclick="app.autofillLogin('admin', 'admin123')">
-              👑 Admin (Herlin)
-            </button>
-            <button type="button" class="btn-demo-pill demo-supervisor" onclick="app.autofillLogin('supervisor', 'admin123')">
-              ⚡ Supervisor
-            </button>
-            <button type="button" class="btn-demo-pill demo-vendedor" onclick="app.autofillLogin('vendedor', '1234')">
-              🏷️ Vendedor (Carlos)
-            </button>
-            <button type="button" class="btn-demo-pill demo-cajero" onclick="app.autofillLogin('cajero', '1234')">
-              💵 Cajero (Mariana)
-            </button>
-          </div>
-        </div>
       </form>
 
       <div class="login-footer">
